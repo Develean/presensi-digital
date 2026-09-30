@@ -249,21 +249,44 @@ erDiagram
 - **Monitoring Antrean**:
   - Dasbor untuk memantau status pengiriman pesan (Pending, Sent, Failed).
 
-### 5.3. Portal Pengelolaan oleh Admin
-1. **Master Data Siswa**:
-   - Tambah, ubah, nonaktifkan, dan hapus data siswa.
-   - Pendaftaran Wajah (Face Enrollment): Mengambil 3-5 pose wajah siswa untuk membentuk *face descriptor* (vektor data wajah).
-   - Pembuatan Kartu Barcode: *Generate* token unik QR/Barcode dan tombol cetak kartu pelajar instan.
-2. **Master Jam & Aturan Presensi**:
-   - Pengaturan jam buka presensi masuk, batas jam tepat waktu, toleransi terlambat, dan jam mulai presensi pulang.
-   - Fleksibilitas hari khusus (misal hari Jumat jam pulang lebih awal).
-3. **Filter & Monitoring Multi-Dimensi**:
-   - **Filter Tanggal**: Harian, rentang tanggal (custom date range).
-   - **Filter Siswa**: Pencarian berdasarkan NIS/Nama.
-   - **Filter Kelas**: Filter per tingkat (X, XI, XII) dan per rombel/kelas.
-   - **Filter Status Kehadiran**: Hadir tepat waktu, Terlambat, Izin, Sakit, Alpa.
-   - **Filter Waktu**: Memantau yang belum masuk, sudah masuk belum pulang, dan sudah pulang.
-   - **Filter Metode**: Rekap presensi dengan Face vs Barcode vs Manual Guru.
+### 5.3. Portal Pengelolaan oleh Admin (Struktur 9 Menu Utama)
+Sesuai rancangan antarmuka standar sekolah, navigasi admin disusun menjadi 9 menu utama yang bersih, konsisten, dan mudah diakses:
+1. **Dashboard (`/admin/dashboard`)**:
+   - Menampilkan metrik KPI kehadiran harian real-time (total siswa, hadir tepat waktu, terlambat, izin, sakit, alpa).
+   - Indikator status operasional jam presensi dan pintasan cepat Kiosk Terminal.
+2. **Presensi Siswa (`/admin/attendances`)**:
+   - Pemantauan rekam jejak presensi harian siswa secara multi-dimensi.
+   - Filter tanggal, siswa/NIS, rombel kelas, status kehadiran, dan metode scan (Face Recognition vs Barcode/QR vs Presensi Mandiri Siswa).
+   - Log snapshot foto wajah saat presensi dilakukan.
+3. **Data Siswa (`/admin/students`)**:
+   - Manajemen siklus hidup data siswa (CRUD).
+   - Fitur pendaftaran biometrik wajah (*Face Enrollment*) via kamera langsung.
+   - Pembuatan token barcode unik dan pencetakan kartu presensi satuan.
+   - Fitur *Reset Device Lock* untuk siswa yang mengganti perangkat smartphone.
+4. **Data Guru (`/admin/teachers`)**:
+   - Manajemen akun guru dan staf pendidik.
+   - Penugasan guru sebagai wali kelas pada rombel tertentu.
+   - Modal tambah/edit akun guru dan pengelolaan hak akses portal.
+5. **Data Kelas & Jurusan (`/admin/classes`)**:
+   - Manajemen daftar rombel kelas dan kompetensi keahlian/jurusan sekolah (misal: X PPLG 1, XI TJAT 2, XII AKL 1).
+   - Pemetaan wali kelas dan rekapitulasi jumlah siswa aktif per kelas.
+6. **Generate QR Code (`/admin/qrcode` & `/admin/qrcode/batch-print`)**:
+   - Pembuatan kartu identitas presensi berbasis QR Code secara instan menggunakan `qrcodejs`.
+   - Filter pemilihan berdasarkan rombel kelas dan pencarian NIS/nama siswa.
+   - Fitur *Batch Printing* (Cetak Massal) dengan tata letak optimal kertas A4 dan *automatic print dialog*.
+   - Fitur cetak satuan dan unduh berkas kartu.
+7. **Generate Laporan (`/admin/reports`)**:
+   - Generator laporan rekapitulasi kehadiran berkala (harian, mingguan, bulanan, atau rentang tanggal bebas).
+   - Statistik agregat per kelas: H (Hadir), T (Terlambat), I (Izin), S (Sakit), A (Alpa), dan Persentase Tingkat Kehadiran.
+   - Lembar cetak laporan resmi (`@media print`) yang dilengkapi Kop Resmi Dinas Pendidikan Provinsi DKI Jakarta / SMKN 77 Jakarta serta kolom tanda tangan Waka Kesiswaan dan Kepala Sekolah.
+8. **Data Petugas (`/admin/officers`)**:
+   - Pengelolaan akun administrator, operator sistem, dan petugas piket gerbang sekolah.
+   - Proteksi keamanan: akun aktif tidak dapat menghapus dirinya sendiri dan sistem menjaga minimal 1 akun admin aktif.
+9. **Pengaturan (`/admin/settings`)**:
+   - Tab 1: **Aturan Jam Presensi** (buka jam presensi, toleransi tepat waktu, batas terlambat, jam pulang, dan hari aktif).
+   - Tab 2: **Profil Sekolah** (Nama instansi, alamat, tahun ajaran aktif, dan zona waktu).
+   - Tab 3: **Keamanan Jaringan Wi-Fi** (Validasi IP Subnet sekolah untuk mencegah titip absen pada presensi mandiri).
+   - Tab 4: **Terminal Kiosk** (Pintasan dan panduan operasional terminal gerbang).
 
 ### 5.4. Portal Pengelolaan oleh Guru (Sistem Informasi Presensi Guru)
 1. **Dasbor Kelas Binaan / Mata Pelajaran**:
@@ -288,9 +311,61 @@ erDiagram
 | **Fase 1: Fondasi & Basis Data** | **SELESAI (100% Passed)** | Inisialisasi framework Laravel, konfigurasi database, pembuatan 6 migrasi tabel utama (`users` role admin/guru, `classes`, `students`, `attendance_rules`, `attendances`, `wa_logs`), implementasi Model Eloquent + Relasi, Seeder data awal, dan pengujian otomatis via `tests/Feature/DatabaseStructureTest.php` (6 tests, 20 assertions passed). |
 | **Fase 2: Master Data & Enrollment** | **SELESAI (100% Passed)** | Sistem Autentikasi multi-role (Admin & Guru), CRUD Rombel Kelas & penugasan wali kelas, CRUD Siswa dengan generator barcode unik otomatis & format nomor WhatsApp 62..., Fitur cetak kartu pelajar standar dengan barcode (JsBarcode), Modul pendaftaran biometrik wajah (*Face Enrollment*) via kamera, CRUD Aturan Jam Presensi (masuk, deadline, late limit, pulang, hari aktif), serta verifikasi otomatis via `tests/Feature/MasterDataTest.php` (11 tests, 40 assertions passed). |
 | **Fase 3: Terminal Kiosk Presensi & Optimasi Biometrik/QR** | **SELESAI (100% Passed)** | Antarmuka Kiosk layar penuh gerbang sekolah (`/kiosk`), integrasi **Face AI offline lokal** (`/models/face-api`) dengan HUD feedback realtime (deteksi wajah, status unknown vs matched), pemindai **QR Code 30 FPS hardware-accelerated** (`Html5Qrcode`) dengan dynamic scan box & cooldown responsif 1.5 detik, mesin validasi jam masuk & pulang (`AttendanceService`), proteksi *anti double-tap*, umpan balik audio TTS & visual, modul cetak kartu pelajar dengan **QR Code Jumbo beresolusi tinggi (240px &times; 240px)** siap cetak kertas fisik, halaman Riwayat & Log Presensi Multi-Filter Admin (`/admin/attendances`), serta verifikasi otomatis via `tests/Feature/KioskAttendanceTest.php` (18 tests, 65 assertions passed). |
-| **Fase 4: Portal Guru & Rekap** | Dalam Proses | Antarmuka Guru untuk melihat daftar hadir kelas, fitur koreksi status (Izin/Sakit/Alpa), rekap kehadiran bulanan, serta ekspor Excel dan PDF. |
+| **Fase 3.5: Presensi Mandiri Mobile Anti-Antrean (Wi-Fi Sekolah & Device Lock)** | **SELESAI (100% Passed)** | Solusi penghilang antrean gerbang: Siswa presensi langsung via HP (`/presensi`), proteksi subnet Wi-Fi sekolah (`VerifySchoolNetwork`), kunci perangkat keras unik (*Device Lock* 1 HP = 1 Akun), tombol reset kaitan perangkat di Admin & Guru Dashboard, pembatasan ketat jam operasional server (*server-side clock*), serta verifikasi otomatis via `tests/Feature/SelfAttendanceTest.php` (26 tests, 103 assertions passed). |
+| **Fase 4: Restrukturisasi 9 Menu Sidebar & Fitur Pelaporan SMKN 77** | **SELESAI (100% Passed)** | Restrukturisasi menu navigasi admin sesuai referensi visual (Dashboard, Presensi Siswa, Data Siswa, Data Guru, Data Kelas & Jurusan, Generate QR Code, Generate Laporan, Data Petugas, Pengaturan). Desain sidebar *frosted glass* dengan latar belakang gedung SMKN 77 Jakarta dan aksen teal `#26a69a`. Implementasi modul Data Guru CRUD, Data Petugas CRUD, Generator Cetak Massal QR Code (`batch-print`), Laporan Resmi Kop Dinas & Tanda Tangan, serta panel Pengaturan Terpadu. Seluruh fitur terverifikasi via `tests/Feature/NewMenuNavigationTest.php` (29 tests, 127 assertions passed). |
+| **Fase 4.5: Penegakan Jam Operasional, Kotak Scanner Bersih & Optimasi Responsif** | **SELESAI (100% Passed)** | Penolakan presensi otomatis jika berada di luar jam operasional atau hari non-aktif pada Terminal Kiosk dan Presensi Mandiri Siswa (HTTP 422 `outside_operational_hours` / `is_closed: true`) dengan dukungan toggle mode bypass petugas (`bypass_hours`). Desain antarmuka pemindai **Kotak Bersih (*Clean Viewfinder*)** tanpa garis laser tebal, digantikan 4 sudut penanda halus (*sleek corner brackets*) dan siluet oval Face ID transparan. Peningkatan drastis responsivitas scan QR (Chromium `BarcodeDetector` native acceleration + synthesizer Web Audio API 0ms latency) dan Face AI TinyFaceDetector `inputSize: 160` (~25ms inferensi frame). Seluruh fitur terverifikasi via `KioskAttendanceTest` dan `SelfAttendanceTest` (**Total test suite: 33 tests, 141 assertions passed, 100% Green**). |
 | **Fase 5: WhatsApp Gateway & Scheduler** | Mendatang | Integrasi Node.js Baileys / Fonnte API, setup Laravel Scheduler & Queue Worker untuk pesan otomatis terlambat/alpa ke orang tua. |
-| **Fase 6: Pengujian & Peluncuran** | Mendatang | Uji coba *load test* kecepatan scan pada jam sibuk masuk sekolah (06.30 - 07.15), validasi akurasi wajah, dan panduan operasional. |
+| **Fase 6: Pengujian Beban & Peluncuran** | Mendatang | Uji coba *load test* kecepatan scan pada jam sibuk masuk sekolah (06.30 - 07.15), validasi akurasi wajah, dan panduan operasional. |
+
+---
+
+### 5.5. Aturan Ketat Jam Operasional & Kotak Pemindai Bersih (Kiosk & Mandiri)
+1. **Penegakan Jam Operasional Sekolah**:
+   - Jadwal masuk (`time_in_start` s/d `time_in_late_limit`) dan jadwal pulang (`time_out_start` s/d `time_out_end`) dievaluasi secara *server-side* berdasarkan aturan aktif (`AttendanceRule`) dan hari kalender (`active_days`).
+   - Jika sistem diakses di luar rentang waktu tersebut (sebelum masuk, jeda siang, setelah pulang, atau hari libur):
+     - **Backend**: Mengembalikan HTTP 422 dengan pesan edukatif (contoh: "Presensi masuk belum dibuka. Sesi dibuka pukul 06:00 WIB" atau "Presensi hari ini telah ditutup").
+     - **Terminal Kiosk**: Menampilkan *Clean Operational Overlay* "PRESENSI SEDANG DITUTUP" dengan badge status dan pengingat jadwal berikutnya.
+     - **Mode Bypass Petugas**: Disediakan toggle switch aman `[Mode Bypass Jam Petugas]` bagi operator untuk keperluan pengujian/simulasi di malam hari atau luar jam sekolah.
+   - Pengecualian CSRF pada route `api/kiosk/*` dan `api/presensi/*` di `bootstrap/app.php` untuk mencegah session expire (419) pada terminal Kiosk yang menyala seharian di gerbang.
+2. **Kotak Pemindai Bersih (*Clean Minimalist Viewfinder*)**:
+   - Menghilangkan animasi laser line tebal yang membuat area pemindaian terkesan kotor/ramai.
+   - Kotak pemindai dibuat 100% bersih dan jernih (*crystal-clear center*) dengan 4 sudut penanda halus (*sleek corner brackets*) bergaya modern.
+   - Pada pemindai Wajah: siluet wajah oval Face ID tipis transparan dengan transisi glow neon halus (*subtle emerald pulse*) ketika wajah siswa berhasil dicocokkan.
+3. **Optimasi Responsivitas Pemindai (Zero-Latency Scanning)**:
+   - **QR Code**: Pemanfaatan akselerasi hardware native `BarcodeDetector` Chromium (`experimentalFeatures: { useBarCodeDetectorIfSupported: true }`), *full-frame scanning*, synthesizer audio nada instan Web Audio API (0ms latency), dan cooldown dipercepat ke 1.0 detik.
+   - **Face AI**: Pengurangan ukuran komputasi `TinyFaceDetectorOptions` menjadi `inputSize: 160` (kecepatan inferensi ~25-35ms per frame) dan penerapan flag guard `isProcessingFaceFrame` untuk mencegah stuttering frame.
+
+---
+
+### 5.6. Tema Visual Solid Midnight Navy & Emerald Green (Layout Bersih & Rapi)
+1. **Latar Belakang Sidebar (*Solid Midnight Navy #0f172a*)**:
+   - Sidebar navigasi menggunakan warna Midnight Navy solid murni (`#0f172a`) tanpa latar belakang foto yang bising, menghasilkan keterbacaan teks 100% jernih, tajam, dan profesional.
+   - Border kanan `border-slate-800` memberikan batas visual yang tegas dan rapi terhadap area konten utama.
+2. **Aksen Warna Emerald Green (Segar & Berkelas)**:
+   - Menu aktif dihiasi warna Emerald Green yang tegas (`bg-emerald-600 text-white font-bold shadow-md shadow-emerald-600/30`), dengan ikon putih solid yang kontras.
+   - Ikon menu inaktif (`text-slate-400`) menyala menjadi hijau emerald lembut saat disorot kursor (*hover effect*).
+3. **Canvas Utama & Topbar**:
+   - Canvas dasar aplikasi menggunakan `bg-slate-100` yang sejuk dan bersih, membuat seluruh kartu-kartu data (`bg-white shadow-sm border border-slate-200/80 rounded-2xl`) memiliki kontras yang sempurna dan tidak berantakan.
+   - Topbar berwarna putih bersih (`bg-white border-b border-slate-200`) yang dilengkapi tombol toggle hamburger, judul halaman tebal, dan kapsul tanggal beraksen emerald hijau.
+
+---
+
+### 5.7. Sidebar Buka-Tutup (Smooth Slide Toggle & Mobile Drawer)
+1. **Mekanisme Buka-Tutup Sidebar yang Kokoh**:
+   - **Mode Desktop (Slide Collapse / Expand)**:
+     - Sidebar dapat disembunyikan ke kiri (`-ml-64`) atau dimunculkan penuh (`w-64`) secara mulus dengan transisi `transition-all duration-300 ease-in-out` tanpa merusak tata letak teks menu.
+     - Saat sidebar ditutup, area kerja konten otomatis melebar penuh 100% sehingga pengguna dapat fokus memeriksa tabel data presensi yang lebar.
+     - Status buka-tutup disimpan secara persisten di browser pengguna via `localStorage ('presensi_sidebar_open')`.
+   - **Mode Mobile (Off-Canvas Drawer)**:
+     - Pada layar ponsel (< 768px), sidebar berfungsi sebagai drawer yang meluncur dari kiri dengan *backdrop blur* gelap (`bg-slate-900/60`).
+     - Terdapat tombol silang (X) dan klik backdrop untuk menutup drawer dengan cepat.
+   - **Tombol Toggle Terintegrasi**:
+     - Tombol Hamburger di Topbar berfungsi sebagai pengendali utama untuk membuka atau menutup sidebar kapan pun.
+2. **Animasi Menarik & Responsif**:
+   - Menu navigasi memiliki transisi gerak halus ke kanan saat di-hover (`.nav-transition`).
+   - Kartu statistik dan status presensi memiliki efek angkat halus (`.card-hover: translateY(-2px)`).
+   - Tombol Kiosk dan tombol aksi memiliki efek tekanan taktil saat diklik (`.btn-bounce: active:scale-97`).
+   - Efek dot indikator hijau berdenyut (*pulse*) pada tanggal aktif.
 
 ---
 

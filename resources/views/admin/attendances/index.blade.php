@@ -1,8 +1,8 @@
 @extends('layouts.app')
 
-@section('title', 'Riwayat & Log Presensi')
-@section('page_title', 'Riwayat & Log Presensi Siswa')
-@section('page_subtitle', 'Pantau dan saring rekam jejak presensi berdasarkan tanggal, kelas, siswa, status, waktu, dan metode')
+@section('title', 'Presensi Siswa')
+@section('page_title', 'Presensi Siswa')
+@section('page_subtitle', 'Pantau dan verifikasi kehadiran harian siswa, status kehadiran, serta log metode scan')
 
 @section('content')
 <div class="space-y-6">
@@ -76,6 +76,7 @@
                 <label class="block font-semibold text-slate-600 mb-1">Metode Scan</label>
                 <select name="method" class="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500/20 outline-none">
                     <option value="">Semua Metode</option>
+                    <option value="self_wifi" {{ request('method') == 'self_wifi' ? 'selected' : '' }}>Mandiri Wi-Fi HP</option>
                     <option value="face" {{ request('method') == 'face' ? 'selected' : '' }}>Face Recognition</option>
                     <option value="barcode" {{ request('method') == 'barcode' ? 'selected' : '' }}>Barcode Kartu</option>
                     <option value="manual" {{ request('method') == 'manual' ? 'selected' : '' }}>Manual Guru</option>
@@ -129,13 +130,13 @@
                             <td class="px-5 py-3.5 text-center">
                                 <div class="space-y-0.5">
                                     @if($row->method_in)
-                                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold {{ $row->method_in == 'face' ? 'bg-purple-100 text-purple-700' : ($row->method_in == 'barcode' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700') }}">
-                                            In: {{ strtoupper($row->method_in) }}
+                                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold {{ $row->method_in == 'face' ? 'bg-purple-100 text-purple-700' : ($row->method_in == 'barcode' ? 'bg-blue-100 text-blue-700' : ($row->method_in == 'self_wifi' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700')) }}">
+                                            In: {{ $row->method_in == 'self_wifi' ? 'WI-FI' : strtoupper($row->method_in) }}
                                         </span>
                                     @endif
                                     @if($row->method_out)
-                                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold {{ $row->method_out == 'face' ? 'bg-purple-100 text-purple-700' : ($row->method_out == 'barcode' ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-700') }}">
-                                            Out: {{ strtoupper($row->method_out) }}
+                                        <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold {{ $row->method_out == 'face' ? 'bg-purple-100 text-purple-700' : ($row->method_out == 'barcode' ? 'bg-blue-100 text-blue-700' : ($row->method_out == 'self_wifi' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-700')) }}">
+                                            Out: {{ $row->method_out == 'self_wifi' ? 'WI-FI' : strtoupper($row->method_out) }}
                                         </span>
                                     @endif
                                 </div>

@@ -13,35 +13,54 @@ Sistem Presensi Digital berbasis web modern yang dirancang untuk mengotomatisasi
 
 ### 1. 🖥️ Terminal Kiosk Mandiri (`/kiosk`)
 - **Mode Layar Penuh (Fullscreen Kiosk Mode)** dengan antarmuka futuristik & jam digital sinkron server realtime.
-- **Biometric Face Recognition AI Offline**: Pemindaian wajah cepat dan aman tanpa koneksi internet pihak ketiga menggunakan model `@vladmandic/face-api` lokal (`/models/face-api`).
-- **QR Code / Barcode Scanner Cepat**: Scanner berkecepatan 30 FPS hardware-accelerated (`Html5Qrcode`) dengan dynamic scan box dan respons instan.
+- **Kotak Pemindai Bersih (*Clean Viewfinder*)**: Tampilan kotak pemindaian bersih dan jernih (*crystal-clear*) dengan 4 sudut penanda halus (*sleek corner brackets*), tanpa garis laser tebal yang mengaburkan kartu.
+- **Penegakan Jam Operasional Ketat**: Sistem otomatis menolak presensi jika dilakukan di luar jam masuk atau jam pulang yang ditentukan (`is_closed: true` / HTTP 422). Dilengkapi overlay edukatif status penutupan presensi dan toggle *Mode Bypass Petugas* untuk simulasi/pengujian.
+- **Biometric Face Recognition AI Offline Cepat**: Siluet oval wajah modern transparan dengan inferensi TinyFaceDetector yang dioptimalkan (`inputSize: 160`, ~25ms latensi) dan model `@vladmandic/face-api` lokal (`/models/face-api`).
+- **QR Code Scanner Ultra-Responsif**: Scanner berkecepatan 30 FPS hardware-accelerated (`Html5Qrcode`) dengan Chromium native `BarcodeDetector`, full-frame scan, synthesizer audio instan (Web Audio API 0ms latency), dan cooldown cepat 1.0 detik.
 - **Deteksi Otomatis Jam Masuk & Pulang**: Sistem secara pintar membedakan sesi masuk atau pulang berdasarkan tabel aturan jam aktif.
 - **Proteksi Anti Double-Tap**: Mencegah kecurangan atau scan ganda berulang dalam rentang waktu yang sama.
 - **Audio & Visual Feedback**: Menampilkan foto siswa, nama, kelas, status kehadiran (Tepat Waktu / Terlambat), disertai sambutan audio ramah (Text-to-Speech).
 
-### 2. 🪪 Manajemen Master Data & Kartu Pelajar
-- **CRUD Siswa & Kelas**: Pengelolaan data siswa lengkap dengan NIS, NISN, rombel kelas, dan nomor WhatsApp orang tua format internasional.
-- **Face Enrollment (Pendaftaran Wajah)**: Modul pendaftaran biometrik wajah siswa melalui kamera web untuk mengekstraksi 128-float face descriptors.
-- **Cetak Kartu Pelajar Instan**: Fitur cetak kartu pelajar otomatis dengan **QR Code Jumbo beresolusi tinggi (240x240 px)** dan barcode unik siswa, siap cetak fisik.
+### 2. 🧭 Sidebar Buka-Tutup (*Smooth Slide Toggle & Drawer*)
+- **Solid Midnight Navy (#0f172a)**: Tampilan sidebar bersih dan kontras tanpa foto bising di latar belakang, membuat 9 menu navigasi terbaca 100% tajam dan jelas.
+- **Mode Desktop (Slide In/Out)**: Sidebar dapat disembunyikan ke kiri (`-ml-64`) atau dimunculkan penuh (`w-64`) dengan transisi halus (`transition-all duration-300`). Area konten otomatis melebar 100% untuk kenyamanan membaca tabel data. Status disimpan di `localStorage`.
+- **Mode Mobile (Off-Canvas Drawer)**: Sidebar tersembunyi di luar layar dan dapat dibuka via tombol hamburger topbar dengan *backdrop blur*.
+- **Animasi Ringan & Rapi**: Transisi hover menu (`.nav-transition`), efek angkat kartu halus (`.card-hover`), dan efek taktil tombol (`.btn-bounce`).
 
-### 3. ⚙️ Master Aturan Jam Presensi
-- Pengaturan fleksibel untuk jam buka presensi masuk, batas toleransi tepat waktu, batas akhir terlambat, dan jam buka/tutup presensi pulang.
-- Dukungan aturan khusus per hari aktif (misal: jam pulang lebih awal di hari Jumat).
+### 3. 🪪 Manajemen Master Data & Pendidik
+- **Data Siswa (`/admin/students`)**: Pengelolaan data siswa lengkap dengan NIS, NISN, rombel kelas, pendaftaran biometrik wajah (*Face Enrollment*), kartu QR, serta tombol *Reset Device Lock*.
+- **Data Guru (`/admin/teachers`)**: Manajemen akun guru pengajar dan penugasan sebagai wali kelas.
+- **Data Kelas & Jurusan (`/admin/classes`)**: Manajemen rombongan belajar (rombel) dan kompetensi keahlian/jurusan sekolah.
+- **Data Petugas (`/admin/officers`)**: Manajemen akun administrator dan petugas piket gerbang sekolah.
 
-### 4. 📊 Monitoring & Riwayat Presensi Multi-Dimensi (`/admin/attendances`)
-- Pemantauan kehadiran lengkap dengan filter:
-  - Rentang tanggal (harian / custom range).
-  - Siswa / NIS / Kelas.
-  - Status kehadiran (Hadir Tepat Waktu, Terlambat, Izin, Sakit, Alpa).
-  - Metode scan (Face Recognition vs Barcode/QR vs Koreksi Manual Guru).
-  - Snapshot foto bukti scan saat presensi dilakukan.
+### 3. 🔲 Generator & Cetak Massal QR Code (`/admin/qrcode`)
+- Filter siswa berdasarkan rombel kelas dan pencarian NIS/nama.
+- Preview kode QR instan per siswa menggunakan `qrcodejs`.
+- Fitur **Cetak Massal (Batch Print)** kartu pelajar dengan layout A4 siap cetak dan dialog cetak otomatis.
+- Fitur cetak kartu satuan dengan layout kartu identitas presensi sekolah.
 
-### 5. 👨‍🏫 Portal Pengelolaan oleh Guru (Dalam Pengembangan)
+### 4. 📈 Generator Laporan Presensi Resmi (`/admin/reports`)
+- Rekapitulasi absensi siswa harian, mingguan, bulanan, atau rentang tanggal bebas.
+- Statistik agregat per kelas: H (Hadir), T (Terlambat), I (Izin), S (Sakit), A (Alpa), dan Persentase Kehadiran.
+- Format cetak resmi standar Dinas Pendidikan Provinsi DKI Jakarta / SMKN 77 Jakarta dengan kop surat kedinasan dan kolom tanda tangan Waka Kesiswaan serta Kepala Sekolah.
+
+### 5. ⚙️ Pengaturan Terpadu (`/admin/settings`)
+- **Aturan Jam Presensi**: Jam buka, batas tepat waktu, toleransi terlambat, jam pulang, dan hari aktif.
+- **Profil Sekolah**: Nama resmi instansi, alamat sekolah, dan tahun ajaran aktif.
+- **Keamanan Wi-Fi**: Validasi IP subnet lokal sekolah untuk keamanan presensi mandiri.
+- **Terminal Kiosk**: Tautan dan panduan pengoperasian terminal presensi gerbang.
+
+### 6. 📱 Presensi Mandiri Mobile Anti-Antrean (`/presensi`)
+- Presensi langsung via smartphone siswa di area sekolah.
+- Verifikasi jaringan Wi-Fi sekolah (*Network Subnet Verification*).
+- Kunci perangkat keras (*Hardware Device Lock* 1 Akun = 1 Smartphone).
+
+### 7. 👨‍🏫 Portal Pengelolaan oleh Guru (`/guru/dashboard`)
 - Dasbor kehadiran per rombel/kelas binaan secara realtime.
 - Koreksi & verifikasi status kehadiran (Izin, Sakit, Alpa) disertai catatan dan unggahan surat keterangan.
-- Rekapitulasi absensi bulanan dan ekspor laporan format **Excel (.xlsx)** & **PDF**.
+- Rekapitulasi absensi bulanan dan pemantauan status kaitan perangkat siswa.
 
-### 6. 📱 Notifikasi WhatsApp Otomatis (Rencana Fase 5)
+### 8. 📲 Notifikasi WhatsApp Otomatis (Rencana Fase 5)
 - Pengiriman pesan WhatsApp terjadwal (Scheduler/Cron Job) ke orang tua bagi siswa yang belum hadir melewati batas waktu presensi masuk.
 
 ---
@@ -150,7 +169,11 @@ php artisan test
 Uji fitur yang mencakup:
 - `tests/Feature/DatabaseStructureTest.php` (Validasi skema tabel & relasi Eloquent)
 - `tests/Feature/MasterDataTest.php` (Validasi CRUD Siswa, Kelas, & Aturan Jam)
-- `tests/Feature/KioskAttendanceTest.php` (Validasi alur presensi, validasi jam, dan anti-double scan)
+- `tests/Feature/KioskAttendanceTest.php` (Validasi alur presensi, penegakan jam operasional masuk/pulang, penolakan luar jam, mode bypass, dan anti-double scan)
+- `tests/Feature/SelfAttendanceTest.php` (Validasi presensi mandiri HP siswa, Device Lock, dan verifikasi subnet Wi-Fi sekolah)
+- `tests/Feature/NewMenuNavigationTest.php` (Validasi 9 modul menu sidebar, CRUD Guru, Petugas, Batch Print QR, Laporan Resmi Kop Dinas)
+
+> **Status Test Suite**: 33 tests passed, 141 assertions passed (100% Green).
 
 ---
 

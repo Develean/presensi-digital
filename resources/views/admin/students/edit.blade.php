@@ -87,5 +87,49 @@
             </div>
         </form>
     </div>
+
+    <!-- Panel Kunci Perangkat (Device Lock) -->
+    <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm mt-6">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center text-sky-600">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                </div>
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm">Kunci Perangkat Presensi Mandiri (Device Lock)</h4>
+                    <p class="text-xs text-slate-500">Mencegah siswa titip absen dari HP siswa lain.</p>
+                </div>
+            </div>
+
+            @if($student->isDeviceLocked())
+                <form action="{{ route('admin.students.reset-device', $student) }}" method="POST"
+                      onsubmit="return confirm('Lepas kaitan HP untuk siswa {{ $student->name }}?')">
+                    @csrf
+                    <button type="submit" class="px-4 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 text-xs font-semibold border border-rose-200 transition">
+                        Reset Kaitan HP
+                    </button>
+                </form>
+            @endif
+        </div>
+
+        <div class="mt-4 pt-4 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+            <div class="bg-slate-50 p-3 rounded-xl">
+                <span class="text-slate-400 block mb-0.5">Status HP:</span>
+                @if($student->isDeviceLocked())
+                    <span class="font-bold text-sky-700">Terkunci (Terdaftar)</span>
+                @else
+                    <span class="font-semibold text-slate-600">Belum Ada HP Terikat</span>
+                @endif
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl">
+                <span class="text-slate-400 block mb-0.5">Nama Perangkat:</span>
+                <span class="font-mono text-slate-700">{{ $student->device_name ?: '-' }}</span>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl">
+                <span class="text-slate-400 block mb-0.5">Waktu Kunci:</span>
+                <span class="text-slate-700">{{ $student->device_locked_at ? $student->device_locked_at->format('d M Y H:i') : '-' }}</span>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection

@@ -19,6 +19,9 @@ class Student extends Model
         'class_id',
         'barcode_token',
         'face_descriptor',
+        'device_id',
+        'device_name',
+        'device_locked_at',
         'parent_name',
         'parent_phone',
         'is_active',
@@ -28,7 +31,31 @@ class Student extends Model
     {
         return [
             'is_active' => 'boolean',
+            'device_locked_at' => 'datetime',
         ];
+    }
+
+    public function isDeviceLocked(): bool
+    {
+        return !empty($this->device_id);
+    }
+
+    public function lockToDevice(string $deviceId, ?string $deviceName = null): void
+    {
+        $this->update([
+            'device_id' => $deviceId,
+            'device_name' => $deviceName ?: 'Smartphone Siswa',
+            'device_locked_at' => now(),
+        ]);
+    }
+
+    public function resetDevice(): void
+    {
+        $this->update([
+            'device_id' => null,
+            'device_name' => null,
+            'device_locked_at' => null,
+        ]);
     }
 
     public function schoolClass(): BelongsTo

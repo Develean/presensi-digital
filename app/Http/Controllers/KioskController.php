@@ -19,15 +19,10 @@ class KioskController extends Controller
      */
     public function index()
     {
-        $now = Carbon::now('Asia/Jakarta');
-        $currentDayOfWeek = (int) $now->isoFormat('E');
+        $schedule = $this->attendanceService->getScheduleStatus();
+        $activeRule = AttendanceRule::where('is_active', true)->first();
 
-        $rules = AttendanceRule::where('is_active', true)->get();
-        $activeRule = $rules->first(function ($rule) use ($currentDayOfWeek) {
-            return in_array($currentDayOfWeek, $rule->active_days ?? []);
-        }) ?? $rules->first();
-
-        return view('kiosk.index', compact('activeRule'));
+        return view('kiosk.index', compact('activeRule', 'schedule'));
     }
 
     /**
@@ -39,6 +34,19 @@ class KioskController extends Controller
             'barcode_token' => ['required', 'string'],
             'photo' => ['nullable', 'string'],
         ]);
+
+        $bypassHours = $request->boolean('bypass_hours', false);
+        $schedule = $this->attendanceService->getScheduleStatus();
+
+        if (!$bypassHours && !$schedule['is_open']) {
+            return response()->json([
+                'success' => false,
+                'type' => 'outside_operational_hours',
+                'is_closed' => true,
+                'message' => 'Presensi ditolak. Saat ini di luar jam operasional presensi sekolah (' . $schedule['message'] . ').',
+                'schedule' => $schedule,
+            ], 422);
+        }
 
         $student = Student::where('barcode_token', $request->barcode_token)->first();
 
@@ -61,10 +69,12 @@ class KioskController extends Controller
         $result = $this->attendanceService->recordAttendance(
             student: $student,
             method: 'barcode',
-            photoBase64: $request->input('photo')
+            photoBase64: $request->input('photo'),
+            bypassHours: $bypassHours
         );
 
-        return response()->json($result);
+        $status = $result['success'] ? 200 : 422;
+        return response()->json($result, $status);
     }
 
     /**
@@ -76,6 +86,19 @@ class KioskController extends Controller
             'student_id' => ['required', 'exists:students,id'],
             'photo' => ['nullable', 'string'],
         ]);
+
+        $bypassHours = $request->boolean('bypass_hours', false);
+        $schedule = $this->attendanceService->getScheduleStatus();
+
+        if (!$bypassHours && !$schedule['is_open']) {
+            return response()->json([
+                'success' => false,
+                'type' => 'outside_operational_hours',
+                'is_closed' => true,
+                'message' => 'Presensi ditolak. Saat ini di luar jam operasional presensi sekolah (' . $schedule['message'] . ').',
+                'schedule' => $schedule,
+            ], 422);
+        }
 
         $student = Student::find($request->student_id);
 
@@ -90,10 +113,12 @@ class KioskController extends Controller
         $result = $this->attendanceService->recordAttendance(
             student: $student,
             method: 'face',
-            photoBase64: $request->input('photo')
+            photoBase64: $request->input('photo'),
+            bypassHours: $bypassHours
         );
 
-        return response()->json($result);
+        $status = $result['success'] ? 200 : 422;
+        return response()->json($result, $status);
     }
 
     /**

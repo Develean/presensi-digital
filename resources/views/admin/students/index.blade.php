@@ -51,6 +51,7 @@
                         <th class="px-5 py-3.5">Kelas</th>
                         <th class="px-5 py-3.5">Kontak WhatsApp Ortu</th>
                         <th class="px-5 py-3.5 text-center">Status Wajah</th>
+                        <th class="px-5 py-3.5 text-center">Kunci HP</th>
                         <th class="px-5 py-3.5 text-right">Aksi & Kartu</th>
                     </tr>
                 </thead>
@@ -87,6 +88,27 @@
                                        class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800 hover:bg-amber-200 transition">
                                         Scan Kamera
                                     </a>
+                                @endif
+                            </td>
+                            <td class="px-5 py-3.5 text-center">
+                                @if($s->isDeviceLocked())
+                                    <div class="inline-flex flex-col items-center">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-sky-100 text-sky-800 mb-1" title="ID: {{ $s->device_id }}">
+                                            <svg class="w-3 h-3 mr-1 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                            {{ Str::limit($s->device_name ?: 'Terkunci', 12) }}
+                                        </span>
+                                        <form action="{{ route('admin.students.reset-device', $s) }}" method="POST" class="inline"
+                                              onsubmit="return confirm('Reset kaitan perangkat untuk {{ $s->name }}? Siswa dapat mendaftarkan HP baru pada presensi berikutnya.')">
+                                            @csrf
+                                            <button type="submit" class="text-[10px] text-rose-600 hover:text-rose-800 underline font-medium">
+                                                Reset HP
+                                            </button>
+                                        </form>
+                                    </div>
+                                @else
+                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-medium bg-slate-100 text-slate-500">
+                                        Belum Ada HP
+                                    </span>
                                 @endif
                             </td>
                             <td class="px-5 py-3.5 text-right space-x-1.5 whitespace-nowrap">

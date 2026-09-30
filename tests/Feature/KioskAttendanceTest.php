@@ -177,4 +177,70 @@ class KioskAttendanceTest extends TestCase
         $response->assertSee('Muhammad Fauzan');
         $response->assertSee('X-RPL 1');
     }
+
+    public function test_kiosk_rejects_barcode_outside_operational_hours(): void
+    {
+        // Set waktu di luar jam operasional (jam 21:00 malam)
+        Carbon::setTestNow(Carbon::create(2026, 9, 28, 21, 0, 0, 'Asia/Jakarta'));
+
+        $response = $this->postJson(route('kiosk.api.scan-barcode'), [
+            'barcode_token' => 'STU-2609-FAUZAN',
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonFragment([
+            'success' => false,
+            'is_closed' => true,
+            'type' => 'outside_operational_hours',
+        ]);
+    }
+
+    public function test_kiosk_allows_barcode_with_bypass_hours_flag(): void
+    {
+        // Set waktu di luar jam operasional (jam 21:00 malam)
+        Carbon::setTestNow(Carbon::create(2026, 9, 28, 21, 0, 0, 'Asia/Jakarta'));
+
+        $response = $this->postJson(route('kiosk.api.scan-barcode'), [
+            'barcode_token' => 'STU-2609-FAUZAN',
+            'bypass_hours' => true,
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonFragment([
+            'success' => true,
+            'action' => 'masuk',
+        ]);
+    }
+
+    public function test_kiosk_rejects_face_outside_operational_hours(): void
+    {
+        Carbon::setTestNow(Carbon::create(2026, 9, 28, 21, 0, 0, 'Asia/Jakarta'));
+
+        $response = $this->postJson(route('kiosk.api.scan-face'), [
+            'student_id' => $this->student->id,
+        ]);
+
+        $response->assertStatus(422);
+        $response->assertJsonFragment([
+            'success' => false,
+            'is_closed' => true,
+            'type' => 'outside_operational_hours',
+        ]);
+    }
+
+    public function test_kiosk_allows_face_with_bypass_hours_flag(): void
+    {
+        Carbon::setTestNow(Carbon::create(2026, 9, 28, 21, 0, 0, 'Asia/Jakarta'));
+
+        $response = $this->postJson(route('kiosk.api.scan-face'), [
+            'student_id' => $this->student->id,
+            'bypass_hours' => true,
+        ]);
+
+        $response->assertOk();
+        $response->assertJsonFragment([
+            'success' => true,
+            'action' => 'masuk',
+        ]);
+    }
 }

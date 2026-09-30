@@ -1,19 +1,19 @@
 @extends('layouts.app')
 
-@section('title', 'Manajemen Kelas')
-@section('page_title', 'Manajemen Kelas & Wali Kelas')
-@section('page_subtitle', 'Kelola daftar rombongan belajar (rombel) dan penugasan wali kelas')
+@section('title', 'Data Kelas & Jurusan')
+@section('page_title', 'Data Kelas & Jurusan')
+@section('page_subtitle', 'Kelola daftar rombongan belajar (rombel), kompetensi keahlian/jurusan, dan penugasan wali kelas')
 
 @section('content')
 <div x-data="{ addModal: false, editModal: false, editData: { id: null, name: '', level: 'X', teacher_id: '' } }" class="space-y-6">
 
     <!-- Header Action -->
     <div class="flex items-center justify-between">
-        <p class="text-sm text-slate-500 font-medium">Total: <span class="font-bold text-slate-800">{{ $classes->count() }} Kelas</span></p>
+        <p class="text-sm text-slate-500 font-medium">Total: <span class="font-bold text-slate-800">{{ $classes->count() }} Kelas & Jurusan</span></p>
         <button @click="addModal = true"
-                class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-sm shadow-md shadow-indigo-600/20 transition flex items-center space-x-2">
+                class="px-4 py-2.5 rounded-xl bg-[#26a69a] hover:bg-[#20968b] text-white font-semibold text-sm shadow-md shadow-teal-600/20 transition flex items-center space-x-2">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-            <span>Tambah Kelas Baru</span>
+            <span>Tambah Kelas & Jurusan Baru</span>
         </button>
     </div>
 

@@ -27,6 +27,11 @@ class User extends Authenticatable
         return $this->role === 'guru';
     }
 
+    public function classes()
+    {
+        return $this->hasMany(SchoolClass::class, 'teacher_id');
+    }
+
     /**
      * Get the attributes that should be cast.
      *

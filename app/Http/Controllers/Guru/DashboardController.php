@@ -34,8 +34,18 @@ class DashboardController extends Controller
             $stats['izin_today'] = Attendance::whereIn('student_id', $studentIds)->where('attendance_date', $today)->where('status_in', 'izin')->count();
             $stats['sakit_today'] = Attendance::whereIn('student_id', $studentIds)->where('attendance_date', $today)->where('status_in', 'sakit')->count();
             $stats['alpa_today'] = Attendance::whereIn('student_id', $studentIds)->where('attendance_date', $today)->where('status_in', 'alpa')->count();
+
+            $students = $myClass->students()
+                ->where('is_active', true)
+                ->with(['attendances' => function ($q) use ($today) {
+                    $q->whereDate('attendance_date', $today);
+                }])
+                ->orderBy('name')
+                ->get();
+        } else {
+            $students = collect();
         }
 
-        return view('guru.dashboard', compact('stats', 'myClass', 'teacher'));
+        return view('guru.dashboard', compact('stats', 'myClass', 'teacher', 'students'));
     }
 }

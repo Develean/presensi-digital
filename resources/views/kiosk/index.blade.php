@@ -7,7 +7,9 @@
     <title>Terminal Kiosk Presensi Mandiri - SMK Digital Indonesia</title>
 
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@700;800&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 
@@ -33,14 +35,52 @@
             display: none !important;
         }
 
-        /* Animated Scanner Laser */
-        @keyframes scanLaser {
-            0% { top: 10%; opacity: 0.8; }
-            50% { top: 90%; opacity: 1; }
-            100% { top: 10%; opacity: 0.8; }
+        /* Clean Minimalist Scanner Viewfinder (Kotak Bersih Tanpa Laser Norak) */
+        .clean-viewfinder {
+            position: relative;
+            width: 250px;
+            height: 250px;
+            border-radius: 1.5rem;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: transparent;
+            box-shadow: 0 0 0 9999px rgba(3, 7, 18, 0.45); /* Soft vignette outside box */
+            pointer-events: none;
+            transition: all 0.3s ease;
         }
-        .laser-line {
-            animation: scanLaser 2s ease-in-out infinite;
+
+        .viewfinder-bracket {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            border-color: #38bdf8;
+            border-style: solid;
+        }
+        .bracket-tl { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-top-left-radius: 1.5rem; }
+        .bracket-tr { top: -2px; right: -2px; border-width: 3px 3px 0 0; border-top-right-radius: 1.5rem; }
+        .bracket-bl { bottom: -2px; left: -2px; border-width: 0 0 3px 3px; border-bottom-left-radius: 1.5rem; }
+        .bracket-br { bottom: -2px; right: -2px; border-width: 0 3px 3px 0; border-bottom-right-radius: 1.5rem; }
+
+        /* Clean Face Biometric Frame */
+        .clean-face-frame {
+            position: relative;
+            width: 210px;
+            height: 270px;
+            border-radius: 105px / 135px;
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 0 0 9999px rgba(3, 7, 18, 0.45);
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+        .clean-face-frame.matched {
+            border-color: #34d399;
+            box-shadow: 0 0 0 9999px rgba(3, 7, 18, 0.3), 0 0 25px rgba(52, 211, 153, 0.45);
+        }
+        .clean-face-frame.unknown {
+            border-color: #fbbf24;
+            box-shadow: 0 0 0 9999px rgba(3, 7, 18, 0.3), 0 0 20px rgba(251, 191, 36, 0.35);
+        }
+        .clean-face-frame.searching {
+            border-color: rgba(56, 189, 248, 0.4);
         }
     </style>
 </head>
@@ -61,6 +101,14 @@
 
         <!-- Clock & Navigation -->
         <div class="flex items-center space-x-6">
+            <!-- Operational Status Indicator Pill -->
+            <div class="hidden md:flex items-center space-x-2 px-3.5 py-1.5 rounded-full border text-xs font-bold transition-all"
+                 :class="schedule.is_open ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-rose-500/10 border-rose-500/30 text-rose-400'">
+                <span class="w-2.5 h-2.5 rounded-full"
+                      :class="schedule.is_open ? 'bg-emerald-400 animate-pulse' : 'bg-rose-400'"></span>
+                <span x-text="schedule.is_open ? 'JAM OPERASIONAL BUKA' : 'DI LUAR JAM OPERASIONAL'"></span>
+            </div>
+
             <div class="text-right hidden sm:block">
                 <div class="text-2xl sm:text-3xl font-black font-mono tracking-tight text-white" x-text="currentTime">00:00:00</div>
                 <div class="text-xs text-slate-400 font-semibold" x-text="currentDate">Memuat tanggal...</div>
@@ -100,16 +148,14 @@
                 <div x-show="scanMode === 'qr'" class="w-full h-full relative flex items-center justify-center">
                     <div id="qrReader" class="w-full h-full"></div>
                     
-                    <!-- Scanner Laser Overlay -->
+                    <!-- Clean Viewfinder Overlay (Kotak Bersih Minimalis) -->
                     <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
-                        <div class="w-64 h-64 border-2 border-indigo-400/50 rounded-2xl relative overflow-hidden">
-                            <!-- Corner Crosshairs -->
-                            <div class="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-sky-400"></div>
-                            <div class="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-sky-400"></div>
-                            <div class="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-sky-400"></div>
-                            <div class="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-sky-400"></div>
-                            <!-- Glowing Scan Line -->
-                            <div class="absolute inset-x-0 h-0.5 bg-gradient-to-r from-transparent via-sky-400 to-transparent shadow-[0_0_8px_#38bdf8] laser-line"></div>
+                        <div class="clean-viewfinder">
+                            <!-- 4 Sudut Penanda Halus (Clean Sleek Brackets) -->
+                            <div class="viewfinder-bracket bracket-tl"></div>
+                            <div class="viewfinder-bracket bracket-tr"></div>
+                            <div class="viewfinder-bracket bracket-bl"></div>
+                            <div class="viewfinder-bracket bracket-br"></div>
                         </div>
                     </div>
                 </div>
@@ -118,14 +164,14 @@
                 <div x-show="scanMode === 'face'" class="w-full h-full relative flex items-center justify-center">
                     <video id="faceCamera" autoplay muted playsinline class="w-full h-full object-cover transform -scale-x-100"></video>
                     
-                    <!-- Facial Target Ring Guide -->
+                    <!-- Clean Facial Target Oval Guide -->
                     <div class="absolute inset-0 pointer-events-none flex items-center justify-center">
-                        <div :class="{
-                                'border-emerald-400 scale-105 border-solid shadow-[0_0_20px_rgba(52,211,153,0.5)]': faceMatchState === 'matched',
-                                'border-amber-400 border-solid shadow-[0_0_15px_rgba(251,191,36,0.4)]': faceMatchState === 'unknown',
-                                'border-purple-400 border-dashed': faceMatchState === 'searching'
-                             }"
-                             class="w-52 h-64 border-2 rounded-[50%] transition-all duration-300"></div>
+                        <div class="clean-face-frame"
+                             :class="{
+                                'matched': faceMatchState === 'matched',
+                                'unknown': faceMatchState === 'unknown',
+                                'searching': faceMatchState === 'searching'
+                             }"></div>
                     </div>
 
                     <!-- Face Scanning Status HUD Banner -->
@@ -141,40 +187,87 @@
                     </div>
                 </div>
 
-                <!-- Status Badge -->
+                <!-- Status Badge (Top-Left of Viewport) -->
                 <div class="absolute top-4 left-4 bg-slate-950/85 backdrop-blur-md px-3.5 py-1.5 rounded-full text-xs font-semibold flex items-center space-x-2 border border-slate-700 z-10">
                     <span class="w-2.5 h-2.5 rounded-full animate-pulse"
                           :class="cameraStatus.includes('Offline') ? 'bg-rose-400' : 'bg-emerald-400'"></span>
                     <span x-text="cameraStatus">Kamera Aktif</span>
                 </div>
+
+                <!-- Bypass Badge (Top-Right if Active) -->
+                <div x-show="bypassHours" x-cloak
+                     class="absolute top-4 right-4 bg-amber-500/20 border border-amber-500/40 text-amber-300 backdrop-blur-md px-3 py-1.5 rounded-full text-[11px] font-bold z-10 flex items-center space-x-1.5">
+                    <span class="w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+                    <span>Mode Bypass Petugas</span>
+                </div>
+
+                <!-- OVERLAY: DILUAR JAM OPERASIONAL (Jika ditutup dan bukan mode bypass) -->
+                <div x-cloak x-show="!schedule.is_open && !bypassHours"
+                     class="absolute inset-0 z-20 bg-slate-950/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center">
+                    <div class="w-16 h-16 rounded-3xl bg-rose-500/10 border border-rose-500/30 text-rose-400 flex items-center justify-center mb-4">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <h3 class="text-lg font-black text-white tracking-wide">PRESENSI SEDANG DITUTUP</h3>
+                    <p class="text-xs text-rose-300 font-semibold mt-1 max-w-xs" x-text="schedule.message || 'Saat ini berada di luar jam operasional presensi sekolah.'"></p>
+                    <p class="text-[11px] text-slate-400 mt-2 max-w-xs">
+                        Sistem tidak menerima presensi siswa di luar jam masuk dan jam pulang yang ditentukan.
+                    </p>
+
+                    <!-- Toggle Bypass Button untuk Petugas / Uji Coba -->
+                    <div class="mt-5 pt-4 border-t border-slate-800/80 w-full max-w-xs flex flex-col items-center">
+                        <button type="button" @click="bypassHours = true"
+                                class="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-bold text-amber-400 hover:text-amber-300 transition flex items-center space-x-2">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                            <span>Bypass Jam (Mode Pengujian Petugas)</span>
+                        </button>
+                    </div>
+                </div>
+
             </div>
 
+            <!-- Viewfinder Instructions -->
             <p class="text-xs text-slate-400 mt-3 text-center">
-                <span x-show="scanMode === 'qr'">Arahkan kartu <strong>QR Code</strong> ke kotak scanner &bull; Respon instan tanpa jeda.</span>
-                <span x-show="scanMode === 'face'">Posisikan wajah Anda tepat di dalam lingkaran panduan.</span>
+                <span x-show="scanMode === 'qr'">Arahkan <strong>QR Code</strong> ke area kotak pemindai &bull; Respon instan tanpa jeda.</span>
+                <span x-show="scanMode === 'face'">Posisikan wajah Anda di dalam siluet panduan &bull; AI Biometrik otomatis mencocokkan.</span>
             </p>
         </div>
 
-        <!-- Right: Active Rule & Manual/USB Scanner Box -->
-        <div class="w-full lg:w-1/2 max-w-md space-y-6">
+        <!-- Right: Active Rule, Operational Status & Hardware/Manual Input -->
+        <div class="w-full lg:w-1/2 max-w-md space-y-5">
 
-            <!-- Active Rule Banner -->
-            <div class="bg-slate-900/80 p-5 rounded-3xl border border-slate-800 space-y-2">
+            <!-- Active Rule & Schedule Status Banner -->
+            <div class="bg-slate-900/90 p-5 rounded-3xl border border-slate-800 space-y-3 shadow-xl">
                 <div class="flex items-center justify-between">
-                    <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">Jadwal Presensi Hari Ini</span>
-                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                        {{ $activeRule->name ?? 'Reguler' }}
+                    <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">Jadwal Jam Operasional</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold"
+                          :class="schedule.is_open ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' : 'bg-rose-500/20 text-rose-300 border border-rose-500/30'">
+                        {{ $activeRule->name ?? 'Reguler' }} &bull; <span x-text="schedule.is_open ? 'Buka' : 'Ditutup'"></span>
                     </span>
                 </div>
-                <div class="grid grid-cols-2 gap-2 text-xs pt-1">
-                    <div class="p-2.5 rounded-2xl bg-slate-800/80 border border-slate-700">
-                        <span class="text-slate-400 block text-[10px]">Batas Tepat Waktu</span>
-                        <strong class="font-mono text-emerald-400 text-sm">{{ substr($activeRule->time_in_deadline ?? '07:15', 0, 5) }} WIB</strong>
+
+                <!-- Schedule Times Grid -->
+                <div class="grid grid-cols-2 gap-2 text-xs">
+                    <div class="p-3 rounded-2xl bg-slate-800/80 border border-slate-700/80">
+                        <span class="text-slate-400 block text-[10px]">Sesi Masuk</span>
+                        <div class="font-mono text-emerald-400 text-sm font-bold mt-0.5">
+                            {{ substr($activeRule->time_in_start ?? '06:00', 0, 5) }} - {{ substr($activeRule->time_in_late_limit ?? '07:30', 0, 5) }}
+                        </div>
+                        <span class="text-[9px] text-slate-400">Batas Tepat: {{ substr($activeRule->time_in_deadline ?? '07:15', 0, 5) }} WIB</span>
                     </div>
-                    <div class="p-2.5 rounded-2xl bg-slate-800/80 border border-slate-700">
-                        <span class="text-slate-400 block text-[10px]">Mulai Jam Pulang</span>
-                        <strong class="font-mono text-sky-400 text-sm">{{ substr($activeRule->time_out_start ?? '15:00', 0, 5) }} WIB</strong>
+                    <div class="p-3 rounded-2xl bg-slate-800/80 border border-slate-700/80">
+                        <span class="text-slate-400 block text-[10px]">Sesi Pulang</span>
+                        <div class="font-mono text-sky-400 text-sm font-bold mt-0.5">
+                            {{ substr($activeRule->time_out_start ?? '15:00', 0, 5) }} - {{ substr($activeRule->time_out_end ?? '17:00', 0, 5) }}
+                        </div>
+                        <span class="text-[9px] text-slate-400">Selesai Belajar</span>
                     </div>
+                </div>
+
+                <!-- Schedule Status Message -->
+                <div class="text-[11px] p-2.5 rounded-xl border flex items-center space-x-2"
+                     :class="schedule.is_open ? 'bg-emerald-950/30 border-emerald-800/50 text-emerald-300' : 'bg-rose-950/30 border-rose-800/50 text-rose-300'">
+                    <span class="w-2 h-2 rounded-full shrink-0" :class="schedule.is_open ? 'bg-emerald-400' : 'bg-rose-400'"></span>
+                    <span x-text="schedule.message || 'Memeriksa jam operasional...'"></span>
                 </div>
             </div>
 
@@ -207,8 +300,13 @@
                         <span>Suara Audio & Sapaan (TTS)</span>
                     </label>
 
+                    <label class="flex items-center space-x-1.5 cursor-pointer text-amber-400">
+                        <input type="checkbox" x-model="bypassHours" class="rounded text-amber-500 bg-slate-900 border-slate-700">
+                        <span class="font-semibold text-[11px]">Bypass Jam</span>
+                    </label>
+
                     <button @click="showTestDrawer = !showTestDrawer" class="text-sky-400 hover:text-sky-300 font-semibold underline text-[11px]">
-                        Panel Pengujian Cepat &darr;
+                        Panel Tes &darr;
                     </button>
                 </div>
             </div>
@@ -303,6 +401,8 @@
                 scanMode: 'qr', // 'qr' or 'face'
                 manualCode: '',
                 voiceEnabled: true,
+                bypassHours: false, // Flag bypass pengujian petugas
+                schedule: @json($schedule),
                 showResultModal: false,
                 showTestDrawer: false,
                 resultData: {},
@@ -314,6 +414,7 @@
                 faceMatchState: 'searching', // 'searching', 'unknown', 'matched'
                 faceStatusText: 'Posisikan wajah Anda di depan kamera',
                 isScanningFaceLoop: false,
+                isProcessingFaceFrame: false,
                 isThrottled: false,
                 isFaceModelLoaded: false,
 
@@ -387,7 +488,7 @@
                                 }
                             });
                             if (labeled.length > 0) {
-                                // Threshold 0.62 for reliable recognition across varied webcam lighting
+                                // Threshold 0.62 for high accuracy match
                                 this.faceMatcher = new faceapi.FaceMatcher(labeled, 0.62);
                             }
                         }
@@ -423,46 +524,53 @@
                         this.html5QrScanner = new Html5Qrcode("qrReader", {
                             formatsToSupport: formatsToSupport,
                             experimentalFeatures: {
-                                useBarCodeDetectorIfSupported: true
+                                useBarCodeDetectorIfSupported: true // Native C++ Chromium BarcodeDetector
                             },
                             verbose: false
                         });
 
-                        const qrboxFunction = function(viewfinderWidth, viewfinderHeight) {
-                            const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
-                            const qrboxEdgeSize = Math.floor(minEdge * 0.75);
-                            return {
-                                width: qrboxEdgeSize,
-                                height: qrboxEdgeSize
-                            };
-                        };
-
+                        // Full viewport scanning: tidak membatasi ke area sempit agar respon instan
                         this.html5QrScanner.start(
                             { facingMode: "user" },
                             {
-                                fps: 30, // 30 FPS for instant frame detection
-                                qrbox: qrboxFunction,
+                                fps: 30, // 30 FPS scanning
                                 aspectRatio: 1.333334
                             },
                             (decodedText, decodedResult) => {
                                 if (this.isThrottled || this.showResultModal) return;
+                                
+                                // Jika di luar jam operasional dan mode bypass mati: tolak langsung
+                                if (!this.schedule.is_open && !this.bypassHours) {
+                                    this.playErrorSound();
+                                    this.resultData = {
+                                        success: false,
+                                        message: 'Presensi ditolak. Saat ini di luar jam operasional presensi sekolah (' + (this.schedule.message || '') + ').'
+                                    };
+                                    this.showResultModal = true;
+                                    this.speakText('Maaf, presensi ditolak karena di luar jam operasional');
+                                    this.isThrottled = true;
+                                    setTimeout(() => { this.isThrottled = false; }, 2000);
+                                    return;
+                                }
+
                                 this.isThrottled = true;
-                                this.playBeepSound();
+                                this.playChimeSound();
                                 
                                 this.processAttendance("{{ route('kiosk.api.scan-barcode') }}", {
-                                    barcode_token: decodedText.trim()
+                                    barcode_token: decodedText.trim(),
+                                    bypass_hours: this.bypassHours
                                 }).finally(() => {
-                                    // Rapid cooldown (1.5 seconds) for quick line scanning
-                                    setTimeout(() => { this.isThrottled = false; }, 1500);
+                                    // Cooldown 1.0 detik untuk kelancaran antrian
+                                    setTimeout(() => { this.isThrottled = false; }, 1000);
                                 });
                             },
                             (errorMessage) => {
-                                // Scanning frames in progress
+                                // Frame scan in progress
                             }
                         ).catch(err => {
                             this.cameraStatus = 'Gunakan Scanner USB / Ketik Token';
                         });
-                    }, 250);
+                    }, 200);
                 },
 
                 stopQRScanner() {
@@ -475,7 +583,7 @@
                     }
                 },
 
-                // 2. REAL-TIME AI FACE SCANNER
+                // 2. ULTRA-FAST AI FACE SCANNER
                 async startFaceCamera() {
                     this.cameraStatus = 'Mengaktifkan AI Pengenal Wajah...';
                     this.faceStatusText = 'Memuat AI Wajah...';
@@ -500,7 +608,7 @@
                         }
 
                         this.cameraStatus = 'Kamera Wajah Aktif & Siap';
-                        this.faceStatusText = 'Posisikan wajah Anda tepat di dalam lingkaran panduan';
+                        this.faceStatusText = 'Posisikan wajah Anda di dalam panduan';
                         this.faceMatchState = 'searching';
                         this.runFaceDetectionLoop(video);
                     } catch (err) {
@@ -514,10 +622,12 @@
                     const loop = async () => {
                         if (!this.isScanningFaceLoop || this.scanMode !== 'face') return;
 
-                        if (!this.isThrottled && !this.showResultModal && !video.paused && !video.ended) {
+                        if (!this.isThrottled && !this.showResultModal && !this.isProcessingFaceFrame && !video.paused && !video.ended) {
+                            this.isProcessingFaceFrame = true;
                             try {
+                                // InputSize 160: 3x lebih cepat (~25ms inferensi)
                                 const detection = await faceapi
-                                    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 224, scoreThreshold: 0.45 }))
+                                    .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.40 }))
                                     .withFaceLandmarks(true)
                                     .withFaceDescriptor();
 
@@ -535,33 +645,52 @@
                                             this.faceMatchState = 'matched';
                                             this.faceStatusText = `✓ Dikenali: ${studentName}`;
                                             
-                                            this.isThrottled = true;
-                                            this.playBeepSound();
-                                            await this.processAttendance("{{ route('kiosk.api.scan-face') }}", {
-                                                student_id: studentId
-                                            });
-                                            
-                                            setTimeout(() => { 
-                                                this.isThrottled = false; 
-                                                this.faceMatchState = 'searching';
-                                                this.faceStatusText = 'Posisikan wajah Anda tepat di dalam lingkaran panduan';
-                                            }, 2000);
+                                            // Jika di luar jam operasional dan bukan bypass
+                                            if (!this.schedule.is_open && !this.bypassHours) {
+                                                this.isThrottled = true;
+                                                this.playErrorSound();
+                                                this.resultData = {
+                                                    success: false,
+                                                    student: matchedStudent,
+                                                    message: 'Presensi ditolak. Saat ini di luar jam operasional presensi sekolah (' + (this.schedule.message || '') + ').'
+                                                };
+                                                this.showResultModal = true;
+                                                this.speakText('Presensi ditolak karena di luar jam operasional');
+                                                setTimeout(() => {
+                                                    this.isThrottled = false;
+                                                    this.faceMatchState = 'searching';
+                                                }, 2000);
+                                            } else {
+                                                this.isThrottled = true;
+                                                this.playChimeSound();
+                                                await this.processAttendance("{{ route('kiosk.api.scan-face') }}", {
+                                                    student_id: studentId,
+                                                    bypass_hours: this.bypassHours
+                                                });
+                                                
+                                                setTimeout(() => { 
+                                                    this.isThrottled = false; 
+                                                    this.faceMatchState = 'searching';
+                                                    this.faceStatusText = 'Posisikan wajah Anda di dalam panduan';
+                                                }, 1200);
+                                            }
                                         } else {
-                                            // Face detected but unindexed
                                             this.faceMatchState = 'unknown';
-                                            this.faceStatusText = 'Wajah terdeteksi, namun belum terdaftar di sistem';
+                                            this.faceStatusText = 'Wajah belum terdaftar di sistem';
                                         }
                                     } else {
                                         this.faceMatchState = 'unknown';
-                                        this.faceStatusText = 'Wajah terdeteksi (Belum ada data biometrik siswa)';
+                                        this.faceStatusText = 'Wajah terdeteksi (Descriptor belum diunggah)';
                                     }
                                 } else {
                                     this.faceDetected = false;
                                     this.faceMatchState = 'searching';
-                                    this.faceStatusText = 'Posisikan wajah Anda tepat di dalam lingkaran panduan';
+                                    this.faceStatusText = 'Posisikan wajah Anda di dalam panduan';
                                 }
                             } catch (e) {
                                 // Frame skip
+                            } finally {
+                                this.isProcessingFaceFrame = false;
                             }
                         }
 
@@ -574,6 +703,7 @@
 
                 stopFaceCamera() {
                     this.isScanningFaceLoop = false;
+                    this.isProcessingFaceFrame = false;
                     const video = document.getElementById('faceCamera');
                     if (video && video.srcObject) {
                         video.srcObject.getTracks().forEach(track => track.stop());
@@ -581,19 +711,66 @@
                     }
                 },
 
-                playBeepSound() {
+                // Instant Web Audio API Chime (0ms Latency)
+                playChimeSound() {
                     try {
                         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        const now = audioCtx.currentTime;
+
+                        // Tone 1: 880Hz (A5)
+                        const osc1 = audioCtx.createOscillator();
+                        const gain1 = audioCtx.createGain();
+                        osc1.type = 'sine';
+                        osc1.frequency.setValueAtTime(880, now);
+                        gain1.gain.setValueAtTime(0.2, now);
+                        gain1.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                        osc1.connect(gain1);
+                        gain1.connect(audioCtx.destination);
+                        osc1.start(now);
+                        osc1.stop(now + 0.12);
+
+                        // Tone 2: 1318.5Hz (E6)
+                        const osc2 = audioCtx.createOscillator();
+                        const gain2 = audioCtx.createGain();
+                        osc2.type = 'sine';
+                        osc2.frequency.setValueAtTime(1318.5, now + 0.08);
+                        gain2.gain.setValueAtTime(0.25, now + 0.08);
+                        gain2.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                        osc2.connect(gain2);
+                        gain2.connect(audioCtx.destination);
+                        osc2.start(now + 0.08);
+                        osc2.stop(now + 0.22);
+                    } catch (e) {}
+                },
+
+                playErrorSound() {
+                    try {
+                        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                        const now = audioCtx.currentTime;
                         const osc = audioCtx.createOscillator();
                         const gain = audioCtx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(220, now);
+                        osc.frequency.linearRampToValueAtTime(160, now + 0.2);
+                        gain.gain.setValueAtTime(0.2, now);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
                         osc.connect(gain);
                         gain.connect(audioCtx.destination);
-                        osc.frequency.value = 1046.5; // C6 high clear chime
-                        gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
-                        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.12);
-                        osc.start();
-                        osc.stop(audioCtx.currentTime + 0.12);
+                        osc.start(now);
+                        osc.stop(now + 0.25);
                     } catch (e) {}
+                },
+
+                speakText(text) {
+                    if (this.voiceEnabled && 'speechSynthesis' in window) {
+                        try {
+                            window.speechSynthesis.cancel();
+                            const utterance = new SpeechSynthesisUtterance(text);
+                            utterance.lang = 'id-ID';
+                            utterance.rate = 1.05;
+                            window.speechSynthesis.speak(utterance);
+                        } catch (e) {}
+                    }
                 },
 
                 async submitManualCode() {
@@ -601,18 +778,27 @@
                     if (!token) return;
 
                     this.manualCode = '';
-                    this.playBeepSound();
-                    await this.processAttendance("{{ route('kiosk.api.scan-barcode') }}", { barcode_token: token });
+                    this.playChimeSound();
+                    await this.processAttendance("{{ route('kiosk.api.scan-barcode') }}", {
+                        barcode_token: token,
+                        bypass_hours: this.bypassHours
+                    });
                 },
 
                 async testScanFace(studentId) {
-                    this.playBeepSound();
-                    await this.processAttendance("{{ route('kiosk.api.scan-face') }}", { student_id: studentId });
+                    this.playChimeSound();
+                    await this.processAttendance("{{ route('kiosk.api.scan-face') }}", {
+                        student_id: studentId,
+                        bypass_hours: this.bypassHours
+                    });
                 },
 
                 async testScanQR(token) {
-                    this.playBeepSound();
-                    await this.processAttendance("{{ route('kiosk.api.scan-barcode') }}", { barcode_token: token });
+                    this.playChimeSound();
+                    await this.processAttendance("{{ route('kiosk.api.scan-barcode') }}", {
+                        barcode_token: token,
+                        bypass_hours: this.bypassHours
+                    });
                 },
 
                 async processAttendance(url, payload) {
@@ -630,18 +816,17 @@
                         this.resultData = data;
                         this.showResultModal = true;
 
-                        if (this.voiceEnabled && 'speechSynthesis' in window) {
-                            window.speechSynthesis.cancel();
-                            const utterance = new SpeechSynthesisUtterance(data.message);
-                            utterance.lang = 'id-ID';
-                            utterance.rate = 1.05;
-                            window.speechSynthesis.speak(utterance);
+                        if (data.success) {
+                            this.speakText(data.message);
+                        } else {
+                            this.playErrorSound();
+                            this.speakText(data.message || 'Presensi tidak dapat dilakukan.');
                         }
 
                         clearTimeout(this.modalTimer);
                         this.modalTimer = setTimeout(() => {
                             this.showResultModal = false;
-                        }, 2200); // 2.2 seconds fast dismiss for smooth flow
+                        }, 2200);
 
                     } catch (err) {
                         this.resultData = {

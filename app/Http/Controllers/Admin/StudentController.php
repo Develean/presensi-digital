@@ -140,4 +140,18 @@ class StudentController extends Controller
             'message' => 'Data biometrik wajah siswa berhasil disimpan!',
         ]);
     }
+
+    public function resetDevice(Student $student)
+    {
+        $student->resetDevice();
+
+        if (request()->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'message' => "Kaitan perangkat untuk siswa {$student->name} berhasil di-reset.",
+            ]);
+        }
+
+        return back()->with('success', "Kaitan perangkat untuk siswa {$student->name} berhasil di-reset.");
+    }
 }

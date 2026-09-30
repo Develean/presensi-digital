@@ -57,6 +57,95 @@
             </div>
         </div>
 
+        <!-- Student Attendance & Device List for Homeroom Teacher -->
+        <div class="bg-white rounded-3xl border border-slate-200/80 shadow-sm overflow-hidden">
+            <div class="p-5 border-b border-slate-100 flex items-center justify-between">
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm">Daftar Kehadiran Siswa & Status Perangkat HP</h4>
+                    <p class="text-xs text-slate-500">Guru dapat membantu siswa mereset kaitan HP jika siswa berganti perangkat.</p>
+                </div>
+                <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-600">
+                    {{ $students->count() }} Siswa
+                </span>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                    <thead>
+                        <tr class="border-b border-slate-100 bg-slate-50/75 text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                            <th class="px-5 py-3.5">NIS & Nama</th>
+                            <th class="px-5 py-3.5 text-center">Presensi Masuk</th>
+                            <th class="px-5 py-3.5 text-center">Presensi Pulang</th>
+                            <th class="px-5 py-3.5 text-center">Status HP</th>
+                            <th class="px-5 py-3.5 text-right">Aksi Guru</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        @forelse($students as $st)
+                            @php
+                                $att = $st->attendances->first();
+                            @endphp
+                            <tr class="hover:bg-slate-50/60 transition">
+                                <td class="px-5 py-3.5">
+                                    <div class="font-bold text-slate-800">{{ $st->name }}</div>
+                                    <div class="font-mono text-[11px] text-slate-400">NIS: {{ $st->nis }}</div>
+                                </td>
+                                <td class="px-5 py-3.5 text-center">
+                                    @if($att && $att->time_in)
+                                        <span class="font-mono font-bold text-slate-700">{{ substr($att->time_in, 0, 5) }}</span>
+                                        <span class="block text-[10px] font-semibold {{ $att->status_in === 'hadir' ? 'text-emerald-600' : 'text-amber-600' }}">
+                                            {{ $att->status_in === 'hadir' ? 'Tepat Waktu' : 'Terlambat' }}
+                                        </span>
+                                    @else
+                                        <span class="text-slate-400 font-medium">Belum Masuk</span>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-3.5 text-center">
+                                    @if($att && $att->time_out)
+                                        <span class="font-mono font-bold text-slate-700">{{ substr($att->time_out, 0, 5) }}</span>
+                                        <span class="block text-[10px] font-semibold text-indigo-600">Pulang</span>
+                                    @else
+                                        <span class="text-slate-400 font-medium">Belum Pulang</span>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-3.5 text-center">
+                                    @if($st->isDeviceLocked())
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-semibold bg-sky-100 text-sky-800" title="{{ $st->device_id }}">
+                                            <svg class="w-3 h-3 mr-1 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                                            {{ Str::limit($st->device_name ?: 'Terkunci', 14) }}
+                                        </span>
+                                    @else
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-100 text-slate-400">
+                                            Belum Ada HP
+                                        </span>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-3.5 text-right whitespace-nowrap">
+                                    @if($st->isDeviceLocked())
+                                        <form action="{{ route('guru.students.reset-device', $st) }}" method="POST" class="inline"
+                                              onsubmit="return confirm('Reset kaitan HP untuk siswa {{ $st->name }}? Siswa dapat mendaftarkan HP baru pada presensi berikutnya.')">
+                                            @csrf
+                                            <button type="submit" class="px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 text-[11px] font-semibold text-rose-700 transition">
+                                                Reset Kaitan HP
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span class="text-slate-400 text-[11px]">-</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="5" class="px-5 py-8 text-center text-slate-400">
+                                    Belum ada siswa terdaftar di kelas ini.
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
     @else
         <!-- No class assigned -->
         <div class="bg-white rounded-3xl p-10 border border-slate-200/80 shadow-sm text-center space-y-3">
